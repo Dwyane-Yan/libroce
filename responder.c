@@ -326,11 +326,15 @@ static int roce_rdma_write_payload(roce_ctx *ctx, roce_qp *qp, struct iovec *iov
     qp->resp.writtenlen += buf_len;
 
     uint64_t wr_id = 0;
-    _roce_recv_wr *recv_wr;
+    _roce_recv_wr *recv_wr = NULL;
     if ((opcode == IB_OPCODE_RDMA_WRITE_ONLY_WITH_IMMEDIATE) ||
         (opcode == IB_OPCODE_RDMA_WRITE_LAST_WITH_IMMEDIATE)) {
         recv_wr = __roce_pop_recv_wr(ctx, qp);
-        wr_id = recv_wr->recv_wr.wr_id;
+	if (!recv_wr) {
+	    roce_log_warn(ctx, "QP(0x%x) has no recv WR for WRITE_WITH_IMM", qp->res.handle);
+	    return -EAGAIN;
+	}
+	wr_id = recv_wr->recv_wr.wr_id;
     }
     bool complete =
         roce_recv_cq_comp(ctx, qp, opcode, wr_id, qp->resp.writtenlen, eth, ROCE_WC_SUCCESS);
