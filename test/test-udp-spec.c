@@ -8,6 +8,7 @@
 #include <CUnit/Basic.h>
 
 #include "spec/udp-spec.h"
+#include "roce/roce.h"
 
 static void test_udp_hdr_sport(void)
 {
